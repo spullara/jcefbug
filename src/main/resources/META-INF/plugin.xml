@@ -1,0 +1,74 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>com.sampullara.jcef.jcefbug</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>Jcefbug</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    Plugin to reproduce JCEF bug. Contains a dialog with JCEFWebView and CefMessageRouter.<br>
+    <em>Open and close the dialog multiple times quickly to reproduce the issue.</em>
+  ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="JCEF Bug"
+                    factoryClass="com.sampullara.jcef.jcefbug.JCEFBugToolWindowFactory"
+                    anchor="right"/>
+    </extensions>
+
+    <actions>
+        <!-- Add the action to the Tools menu and toolbar -->
+        <action id="JCEFBugAction"
+                class="com.sampullara.jcef.jcefbug.JCEFBugAction"
+                text="Open JCEF Dialog"
+                description="Opens a dialog with JCEF WebView to reproduce the bug">
+            <add-to-group group-id="ToolsMenu" anchor="first"/>
+            <add-to-group group-id="MainToolBar" anchor="last"/>
+        </action>
+
+        <!-- Automated stress test action -->
+        <action id="JCEFBugStressTestAction"
+                class="com.sampullara.jcef.jcefbug.JCEFBugStressTestAction"
+                text="Start JCEF Stress Test"
+                description="Automatically opens and closes JCEF dialog repeatedly to reproduce the bug">
+            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugAction"/>
+        </action>
+
+        <!-- Aggressive test action -->
+        <action id="JCEFBugAggressiveTestAction"
+                class="com.sampullara.jcef.jcefbug.JCEFBugAggressiveTestAction"
+                text="Start Aggressive JCEF Test"
+                description="Aggressively tests JCEF with multiple concurrent dialogs and race conditions">
+            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugStressTestAction"/>
+        </action>
+
+        <!-- Manual test action -->
+        <action id="JCEFBugManualTestAction"
+                class="com.sampullara.jcef.jcefbug.JCEFBugManualTestAction"
+                text="Test Auto-Close Dialog"
+                description="Opens a single dialog to test auto-close functionality">
+            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugAggressiveTestAction"/>
+        </action>
+
+        <!-- Targeted race condition test -->
+        <action id="JCEFBugTargetedTestAction"
+                class="com.sampullara.jcef.jcefbug.JCEFBugTargetedTestAction"
+                text="Targeted RemoteMessageRouter Race Test"
+                description="Specifically targets the RemoteMessageRouterImpl race condition">
+            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugManualTestAction"/>
+        </action>
+    </actions>
+</idea-plugin>
