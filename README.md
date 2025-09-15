@@ -22,40 +22,42 @@ The plugin creates:
    - The "JCEF Bug" tool window button (right side panel)
    - Tools menu → "Open JCEF Dialog"
    - Main toolbar button
-3. **Trigger Bug**: Open and close the dialog **multiple times quickly**
-4. **Observe**: Eventually this should lead to the error you're trying to reproduce
+3. **Trigger Bug**: **Click OK/Cancel buttons as fast as possible** to rapidly open/close dialogs
+4. **Monitor Console**: Watch for error messages and stack traces
 
 ### Automated Testing (Recommended)
 The plugin includes automated stress testing to systematically reproduce the bug:
 
-#### 1. **Standard Stress Test**
-- **Access**: Tools menu → "Start JCEF Stress Test" OR tool window "Start Stress Test" button
+#### 1. **Simple Fast Stress Test**
+- **Access**: Tools menu → "Simple Fast Stress Test" OR tool window "Simple Fast Test" button
 - **Features**:
-  - Configurable number of iterations (0 = run until failure)
-  - Configurable delay between iterations
-  - **Auto-close on echo**: Dialog automatically closes when JavaScript receives successful echo response
-  - Progress tracking with error counting
-  - Automatic error reporting and continuation prompts
-- **Use Case**: Systematic testing with controlled parameters and realistic JS↔Java communication
+  - Configurable number of iterations (default: 1000)
+  - Configurable delay between iterations (default: 10ms)
+  - Simple open → wait → close cycle
+  - Stops immediately on any error
+- **Use Case**: Automated rapid dialog cycling to trigger race conditions
 
 #### 2. **Aggressive Test** (Most Effective)
 - **Access**: Tools menu → "Start Aggressive JCEF Test"
 - **Features**:
   - Multiple concurrent testing strategies:
-    - **Rapid sequential**: Auto-close on echo with 1-second timeout
-    - **Overlapping lifecycles**: Auto-close on echo with random timeout monitoring
-    - **Immediate close**: Manual close before JS initialization (race condition)
+    - **Rapid sequential**: Very fast open/close cycles (5ms delay)
+    - **Overlapping lifecycles**: Random timing between open/close (10-60ms)
+    - **Immediate close**: Manual close immediately after show (race condition)
   - Multi-threaded execution to trigger race conditions
   - Real-time monitoring of active dialogs and errors
   - Auto-stops after 10 errors or 5 minutes
-- **Use Case**: Maximum pressure testing to trigger race conditions and disposal issues during active JS↔Java communication
+- **Use Case**: Maximum pressure testing with concurrent dialog lifecycles
 
 ## Technical Details
 
 ### Components Created
 
 - **JCEFBugAction**: Action class that opens the dialog
-- **JCEFBugDialog**: DialogWrapper containing the JCEF WebView
+- **JCEFBugDialog**: Modal DialogWrapper containing the JCEF WebView with manual OK/Cancel buttons
+- **JCEFBugSimpleStressTest**: Simple automated stress testing with configurable parameters
+- **JCEFBugAggressiveTest**: Multi-threaded concurrent testing for maximum race condition pressure
+- **JCEFBugTargetedTest**: Isolates the CefMessageRouter creation race condition
 - **JCEFBugToolWindow**: Tool window factory and content
 - **CefMessageRouter**: Configured with test communication handlers
 
@@ -110,8 +112,7 @@ Should create the conditions needed to reproduce the issue.
 
 **Reproduction Success**: ✅ Confirmed with the stress testing tools in this plugin.
 
-### **Additional Targeted Test**
-- **Access**: Tools menu → "Targeted RemoteMessageRouter Race Test"
-- **Purpose**: Isolates the race condition to just CefMessageRouter creation
-- **Strategy**: Rapid create/dispose cycles without full dialog lifecycle
-- **Detection**: Automatically detects and reports the specific NPE
+### **Additional Testing Tools**
+- **Targeted RemoteMessageRouter Race Test**: Isolates the race condition to just CefMessageRouter creation
+- **Test Dialog Close Mechanism**: Tests basic dialog closing without JCEF complexity
+- **Manual Test**: Single dialog for manual verification
