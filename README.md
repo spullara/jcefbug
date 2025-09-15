@@ -112,7 +112,11 @@ Should create the conditions needed to reproduce the issue.
 
 **Reproduction Success**: ✅ Confirmed with the stress testing tools in this plugin.
 
-### **Additional Testing Tools**
-- **Targeted RemoteMessageRouter Race Test**: Isolates the race condition to just CefMessageRouter creation
-- **Test Dialog Close Mechanism**: Tests basic dialog closing without JCEF complexity
-- **Manual Test**: Single dialog for manual verification
+### **Complete Tools Menu**
+All available actions in Tools menu:
+1. **Open JCEF Bug Dialog** - Basic manual dialog for rapid clicking
+2. **Simple Fast Stress Test** - Automated stress testing with configurable parameters
+3. **Start Aggressive JCEF Test** - Multi-threaded concurrent testing (most effective)
+4. **Manual Test Dialog** - Single dialog for manual verification
+5. **Targeted RemoteMessageRouter Race Test** - Isolates CefMessageRouter creation race
+6. **Test Dialog Close Mechanism** - Tests basic dialog closing functionality

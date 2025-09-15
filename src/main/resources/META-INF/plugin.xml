@@ -52,14 +52,14 @@
                 class="com.sampullara.jcef.jcefbug.JCEFBugAggressiveTestAction"
                 text="Start Aggressive JCEF Test"
                 description="Aggressively tests JCEF with multiple concurrent dialogs and race conditions">
-            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugStressTestAction"/>
+            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugSimpleStressTestAction"/>
         </action>
 
         <!-- Manual test action -->
         <action id="JCEFBugManualTestAction"
                 class="com.sampullara.jcef.jcefbug.JCEFBugManualTestAction"
-                text="Test Auto-Close Dialog"
-                description="Opens a single dialog to test auto-close functionality">
+                text="Manual Test Dialog"
+                description="Opens a single dialog for manual testing">
             <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugAggressiveTestAction"/>
         </action>
 
