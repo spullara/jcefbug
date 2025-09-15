@@ -39,11 +39,11 @@
             <add-to-group group-id="MainToolBar" anchor="last"/>
         </action>
 
-        <!-- Automated stress test action -->
-        <action id="JCEFBugStressTestAction"
-                class="com.sampullara.jcef.jcefbug.JCEFBugStressTestAction"
-                text="Start JCEF Stress Test"
-                description="Automatically opens and closes JCEF dialog repeatedly to reproduce the bug">
+        <!-- Simple stress test action -->
+        <action id="JCEFBugSimpleStressTestAction"
+                class="com.sampullara.jcef.jcefbug.JCEFBugSimpleStressTestAction"
+                text="Simple Fast Stress Test"
+                description="Runs simple fast stress testing of JCEF dialogs">
             <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugAction"/>
         </action>
 
@@ -69,6 +69,14 @@
                 text="Targeted RemoteMessageRouter Race Test"
                 description="Specifically targets the RemoteMessageRouterImpl race condition">
             <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugManualTestAction"/>
+        </action>
+
+        <!-- Dialog close test -->
+        <action id="JCEFBugCloseTestAction"
+                class="com.sampullara.jcef.jcefbug.JCEFBugCloseTestAction"
+                text="Test Dialog Close Mechanism"
+                description="Tests the basic dialog close functionality">
+            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="JCEFBugTargetedTestAction"/>
         </action>
     </actions>
 </idea-plugin>

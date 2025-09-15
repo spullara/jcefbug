@@ -14,25 +14,22 @@ import org.cef.browser.CefMessageRouter
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 
-class JCEFBugDialog(private val project: Project, private val autoCloseOnEcho: Boolean = false) : DialogWrapper(project) {
+class JCEFBugDialog(private val project: Project) : DialogWrapper(project) {
 
     private lateinit var webView: JBCefBrowser
     private lateinit var contentPanel: JPanel
-    private var echoReceived = false
 
     init {
         title = "JCEF Bug Reproduction Dialog"
-        setModal(false) // Make non-modal so JavaScript can execute
         init()
     }
     
     override fun createCenterPanel(): JComponent {
         contentPanel = JPanel(BorderLayout())
         contentPanel.preferredSize = Dimension(800, 600)
-
-        println("Creating JCEF dialog with autoCloseOnEcho=$autoCloseOnEcho")
 
         // Create JCEF browser with message router
         webView = JBCefBrowser()
@@ -55,23 +52,6 @@ class JCEFBugDialog(private val project: Project, private val autoCloseOnEcho: B
 
                 // Simple echo response
                 callback?.success("Echo: $request")
-
-                // Auto-close dialog if enabled and this is the first echo
-                if (autoCloseOnEcho && !echoReceived) {
-                    echoReceived = true
-                    println("Auto-closing dialog after receiving echo response")
-                    // Close dialog after a brief delay to allow the response to be processed
-                    Thread {
-                        try {
-                            Thread.sleep(25) // Brief delay to ensure JS receives the response
-                            com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
-                                close(0)
-                            }
-                        } catch (e: Exception) {
-                            println("Error auto-closing dialog: ${e.message}")
-                        }
-                    }.start()
-                }
 
                 return true
             }
@@ -174,17 +154,34 @@ class JCEFBugDialog(private val project: Project, private val autoCloseOnEcho: B
         webView.loadHTML(testHtml)
         
         contentPanel.add(webView.component, BorderLayout.CENTER)
-        
+
+
+
         return contentPanel
     }
+
+
     
     override fun dispose() {
+        println("JCEFBugDialog.dispose() called")
         try {
             webView.dispose()
+            println("WebView disposed successfully")
         } catch (e: Exception) {
             println("Error disposing webView: ${e.message}")
             e.printStackTrace()
         }
         super.dispose()
+        println("JCEFBugDialog.dispose() completed")
+    }
+
+    override fun doCancelAction() {
+        println("JCEFBugDialog.doCancelAction() called")
+        super.doCancelAction()
+    }
+
+    override fun doOKAction() {
+        println("JCEFBugDialog.doOKAction() called")
+        super.doOKAction()
     }
 }

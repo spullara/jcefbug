@@ -17,7 +17,7 @@ class JCEFBugManualTestAction : AnAction("Test Auto-Close Dialog") {
             "Manual Auto-Close Test"
         )
         
-        val dialog = JCEFBugDialog(project, autoCloseOnEcho = true)
+        val dialog = JCEFBugDialog(project)
         dialog.show()
         
         println("Manual test dialog opened - should auto-close when JS sends echo message")

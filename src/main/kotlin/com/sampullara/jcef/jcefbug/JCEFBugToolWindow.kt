@@ -28,9 +28,9 @@ class JCEFBugToolWindowContent(private val project: Project) {
             dialog.show()
         }
 
-        val stressTestButton = JButton("Start Stress Test")
+        val stressTestButton = JButton("Simple Fast Test")
         stressTestButton.addActionListener {
-            val stressTestAction = JCEFBugStressTestAction()
+            val stressTestAction = JCEFBugSimpleStressTestAction()
             val actionEvent = com.intellij.openapi.actionSystem.AnActionEvent.createFromDataContext(
                 "ToolWindow",
                 null,

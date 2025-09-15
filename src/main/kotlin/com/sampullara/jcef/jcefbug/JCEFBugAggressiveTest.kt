@@ -63,33 +63,15 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                             try {
                                 val iteration = iterationCount.incrementAndGet()
                                 
-                                var dialog: JCEFBugDialog? = null
                                 ApplicationManager.getApplication().invokeAndWait {
                                     try {
-                                        dialog = JCEFBugDialog(project, autoCloseOnEcho = true)
+                                        val dialog = JCEFBugDialog(project)
                                         activeDialogs.incrementAndGet()
-                                        dialog!!.show()
-                                    } catch (e: Exception) {
-                                        errorCount.incrementAndGet()
-                                        errors.offer("Sequential create[$iteration]: ${e.message}")
-                                    }
-                                }
+                                        dialog.show()
 
-                                // Wait for auto-close or timeout (outside EDT)
-                                if (dialog != null) {
-                                    try {
-                                        var waitTime = 0
-                                        while (dialog!!.isShowing && waitTime < 1000) { // Max 1 second wait
-                                            Thread.sleep(5)
-                                            waitTime += 5
-                                        }
-
-                                        // Force close if still showing
-                                        if (dialog!!.isShowing) {
-                                            ApplicationManager.getApplication().invokeAndWait {
-                                                dialog!!.close(0)
-                                            }
-                                        }
+                                        // Very fast close - simulate rapid clicking
+                                        Thread.sleep(5)
+                                        dialog.close(0)
 
                                         activeDialogs.decrementAndGet()
                                         
@@ -119,20 +101,17 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                                 
                                 ApplicationManager.getApplication().invokeLater {
                                     try {
-                                        val dialog = JCEFBugDialog(project, autoCloseOnEcho = true)
+                                        val dialog = JCEFBugDialog(project)
                                         activeDialogs.incrementAndGet()
 
                                         dialog.show()
 
-                                        // Monitor for auto-close or force close after timeout
+                                        // Random quick close timing
                                         Thread {
                                             try {
-                                                // Wait a random time, then check if still showing
-                                                Thread.sleep((Math.random() * 200 + 100).toLong()) // 100-300ms
-                                                if (dialog.isShowing) {
-                                                    ApplicationManager.getApplication().invokeLater {
-                                                        dialog.close(0)
-                                                    }
+                                                Thread.sleep((Math.random() * 50 + 10).toLong()) // 10-60ms
+                                                ApplicationManager.getApplication().invokeLater {
+                                                    dialog.close(0)
                                                 }
                                                 activeDialogs.decrementAndGet()
                                             } catch (e: Exception) {
@@ -167,7 +146,7 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                                 
                                 ApplicationManager.getApplication().invokeAndWait {
                                     try {
-                                        val dialog = JCEFBugDialog(project, autoCloseOnEcho = false) // Don't auto-close for immediate test
+                                        val dialog = JCEFBugDialog(project)
                                         activeDialogs.incrementAndGet()
 
                                         dialog.show()
