@@ -48,6 +48,7 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                 val iterationCount = AtomicInteger(0)
                 val errorCount = AtomicInteger(0)
                 val activeDialogs = AtomicInteger(0)
+                val maxConcurrentDialogs = 10
                 val errors = ConcurrentLinkedQueue<String>()
                 val startTime = System.currentTimeMillis()
                 
@@ -61,15 +62,20 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                     executor.submit {
                         while (!indicator.isCanceled && isRunning.get()) {
                             try {
+                                // Wait if we have too many active dialogs
+                                while (activeDialogs.get() >= maxConcurrentDialogs && !indicator.isCanceled) {
+                                    Thread.sleep(10)
+                                }
+
                                 val iteration = iterationCount.incrementAndGet()
-                                
+
                                 ApplicationManager.getApplication().invokeLater {
                                     try {
                                         val dialog = JCEFBugDialog(project, isModal = false)
                                         activeDialogs.incrementAndGet()
                                         dialog.show()
 
-                                        // Auto-close after 100ms - no user interaction needed
+                                        // Wait 100ms after opening, then close
                                         Thread {
                                             Thread.sleep(100)
                                             ApplicationManager.getApplication().invokeLater {
@@ -79,10 +85,11 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                                                 } catch (e: Exception) {
                                                     errorCount.incrementAndGet()
                                                     errors.offer("Sequential close[$iteration]: ${e.message}")
+                                                    activeDialogs.decrementAndGet()
                                                 }
                                             }
                                         }.start()
-                                        
+
                                     } catch (e: Exception) {
                                         errorCount.incrementAndGet()
                                         errors.offer("Sequential[$iteration]: ${e.message}")
@@ -90,8 +97,8 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                                         e.printStackTrace()
                                     }
                                 }
-                                
-                                Thread.sleep(5) // Very short delay
+
+                                Thread.sleep(20) // Slightly longer delay to manage concurrency
                                 
                             } catch (e: Exception) {
                                 errorCount.incrementAndGet()
@@ -105,8 +112,13 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                     executor.submit {
                         while (!indicator.isCanceled && isRunning.get()) {
                             try {
+                                // Wait if we have too many active dialogs
+                                while (activeDialogs.get() >= maxConcurrentDialogs && !indicator.isCanceled) {
+                                    Thread.sleep(10)
+                                }
+
                                 val iteration = iterationCount.incrementAndGet()
-                                
+
                                 ApplicationManager.getApplication().invokeLater {
                                     try {
                                         val dialog = JCEFBugDialog(project, isModal = false)
@@ -114,10 +126,10 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
 
                                         dialog.show()
 
-                                        // Random timing between 50-150ms
+                                        // Wait 100ms after opening, then close
                                         Thread {
                                             try {
-                                                Thread.sleep((Math.random() * 100 + 50).toLong()) // 50-150ms
+                                                Thread.sleep(100)
                                                 ApplicationManager.getApplication().invokeLater {
                                                     try {
                                                         dialog.close(0)
@@ -125,14 +137,16 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                                                     } catch (e: Exception) {
                                                         errorCount.incrementAndGet()
                                                         errors.offer("Overlapping close[$iteration]: ${e.message}")
+                                                        activeDialogs.decrementAndGet()
                                                     }
                                                 }
                                             } catch (e: Exception) {
                                                 errorCount.incrementAndGet()
                                                 errors.offer("Overlapping thread[$iteration]: ${e.message}")
+                                                activeDialogs.decrementAndGet()
                                             }
                                         }.start()
-                                        
+
                                     } catch (e: Exception) {
                                         errorCount.incrementAndGet()
                                         errors.offer("Overlapping[$iteration]: ${e.message}")
@@ -140,8 +154,8 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                                         e.printStackTrace()
                                     }
                                 }
-                                
-                                Thread.sleep(20)
+
+                                Thread.sleep(30)
                                 
                             } catch (e: Exception) {
                                 errorCount.incrementAndGet()
@@ -151,12 +165,17 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                         }
                     }
                     
-                    // Strategy 3: Immediate close after show
+                    // Strategy 3: Wait 100ms then close (like the others)
                     executor.submit {
                         while (!indicator.isCanceled && isRunning.get()) {
                             try {
+                                // Wait if we have too many active dialogs
+                                while (activeDialogs.get() >= maxConcurrentDialogs && !indicator.isCanceled) {
+                                    Thread.sleep(10)
+                                }
+
                                 val iteration = iterationCount.incrementAndGet()
-                                
+
                                 ApplicationManager.getApplication().invokeLater {
                                     try {
                                         val dialog = JCEFBugDialog(project, isModal = false)
@@ -164,26 +183,36 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
 
                                         dialog.show()
 
-                                        // Immediate close - maximum race condition potential
-                                        ApplicationManager.getApplication().invokeLater {
+                                        // Wait 100ms after opening, then close
+                                        Thread {
                                             try {
-                                                dialog.close(0)
-                                                activeDialogs.decrementAndGet()
+                                                Thread.sleep(100)
+                                                ApplicationManager.getApplication().invokeLater {
+                                                    try {
+                                                        dialog.close(0)
+                                                        activeDialogs.decrementAndGet()
+                                                    } catch (e: Exception) {
+                                                        errorCount.incrementAndGet()
+                                                        errors.offer("Strategy3 close[$iteration]: ${e.message}")
+                                                        activeDialogs.decrementAndGet()
+                                                    }
+                                                }
                                             } catch (e: Exception) {
                                                 errorCount.incrementAndGet()
-                                                errors.offer("Immediate close[$iteration]: ${e.message}")
+                                                errors.offer("Strategy3 thread[$iteration]: ${e.message}")
+                                                activeDialogs.decrementAndGet()
                                             }
-                                        }
-                                        
+                                        }.start()
+
                                     } catch (e: Exception) {
                                         errorCount.incrementAndGet()
-                                        errors.offer("Immediate[$iteration]: ${e.message}")
-                                        println("Immediate error [$iteration]: ${e.message}")
+                                        errors.offer("Strategy3[$iteration]: ${e.message}")
+                                        println("Strategy3 error [$iteration]: ${e.message}")
                                         e.printStackTrace()
                                     }
                                 }
-                                
-                                Thread.sleep(1) // Minimal delay
+
+                                Thread.sleep(40) // Slightly different timing
                                 
                             } catch (e: Exception) {
                                 errorCount.incrementAndGet()
