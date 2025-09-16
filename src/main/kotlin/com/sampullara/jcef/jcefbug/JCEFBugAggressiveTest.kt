@@ -63,17 +63,25 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                             try {
                                 val iteration = iterationCount.incrementAndGet()
                                 
-                                ApplicationManager.getApplication().invokeAndWait {
+                                ApplicationManager.getApplication().invokeLater {
                                     try {
-                                        val dialog = JCEFBugDialog(project)
+                                        val dialog = JCEFBugDialog(project, isModal = false)
                                         activeDialogs.incrementAndGet()
                                         dialog.show()
 
-                                        // Very fast close - simulate rapid clicking
-                                        Thread.sleep(5)
-                                        dialog.close(0)
-
-                                        activeDialogs.decrementAndGet()
+                                        // Auto-close after 100ms - no user interaction needed
+                                        Thread {
+                                            Thread.sleep(100)
+                                            ApplicationManager.getApplication().invokeLater {
+                                                try {
+                                                    dialog.close(0)
+                                                    activeDialogs.decrementAndGet()
+                                                } catch (e: Exception) {
+                                                    errorCount.incrementAndGet()
+                                                    errors.offer("Sequential close[$iteration]: ${e.message}")
+                                                }
+                                            }
+                                        }.start()
                                         
                                     } catch (e: Exception) {
                                         errorCount.incrementAndGet()
@@ -101,22 +109,27 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                                 
                                 ApplicationManager.getApplication().invokeLater {
                                     try {
-                                        val dialog = JCEFBugDialog(project)
+                                        val dialog = JCEFBugDialog(project, isModal = false)
                                         activeDialogs.incrementAndGet()
 
                                         dialog.show()
 
-                                        // Random quick close timing
+                                        // Random timing between 50-150ms
                                         Thread {
                                             try {
-                                                Thread.sleep((Math.random() * 50 + 10).toLong()) // 10-60ms
+                                                Thread.sleep((Math.random() * 100 + 50).toLong()) // 50-150ms
                                                 ApplicationManager.getApplication().invokeLater {
-                                                    dialog.close(0)
+                                                    try {
+                                                        dialog.close(0)
+                                                        activeDialogs.decrementAndGet()
+                                                    } catch (e: Exception) {
+                                                        errorCount.incrementAndGet()
+                                                        errors.offer("Overlapping close[$iteration]: ${e.message}")
+                                                    }
                                                 }
-                                                activeDialogs.decrementAndGet()
                                             } catch (e: Exception) {
                                                 errorCount.incrementAndGet()
-                                                errors.offer("Overlapping close[$iteration]: ${e.message}")
+                                                errors.offer("Overlapping thread[$iteration]: ${e.message}")
                                             }
                                         }.start()
                                         
@@ -144,15 +157,23 @@ class JCEFBugAggressiveTestAction : AnAction("Start Aggressive JCEF Test") {
                             try {
                                 val iteration = iterationCount.incrementAndGet()
                                 
-                                ApplicationManager.getApplication().invokeAndWait {
+                                ApplicationManager.getApplication().invokeLater {
                                     try {
-                                        val dialog = JCEFBugDialog(project)
+                                        val dialog = JCEFBugDialog(project, isModal = false)
                                         activeDialogs.incrementAndGet()
 
                                         dialog.show()
-                                        dialog.close(0) // Immediate close - this creates the race condition
 
-                                        activeDialogs.decrementAndGet()
+                                        // Immediate close - maximum race condition potential
+                                        ApplicationManager.getApplication().invokeLater {
+                                            try {
+                                                dialog.close(0)
+                                                activeDialogs.decrementAndGet()
+                                            } catch (e: Exception) {
+                                                errorCount.incrementAndGet()
+                                                errors.offer("Immediate close[$iteration]: ${e.message}")
+                                            }
+                                        }
                                         
                                     } catch (e: Exception) {
                                         errorCount.incrementAndGet()

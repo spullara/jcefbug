@@ -17,13 +17,14 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 
-class JCEFBugDialog(private val project: Project) : DialogWrapper(project) {
+class JCEFBugDialog(private val project: Project, private val isModal: Boolean = true) : DialogWrapper(project) {
 
     private lateinit var webView: JBCefBrowser
     private lateinit var contentPanel: JPanel
 
     init {
         title = "JCEF Bug Reproduction Dialog"
+        setModal(isModal)
         init()
     }
     
