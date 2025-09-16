@@ -39,9 +39,21 @@ class JCEFBugToolWindowContent(private val project: Project) {
             stressTestAction.actionPerformed(actionEvent)
         }
 
+        val aggressiveTestButton = JButton("Aggressive Test")
+        aggressiveTestButton.addActionListener {
+            val aggressiveTestAction = JCEFBugAggressiveTestAction()
+            val actionEvent = com.intellij.openapi.actionSystem.AnActionEvent.createFromDataContext(
+                "ToolWindow",
+                null,
+                com.intellij.openapi.actionSystem.impl.SimpleDataContext.getProjectContext(project)
+            )
+            aggressiveTestAction.actionPerformed(actionEvent)
+        }
+
         val panel = JPanel()
         panel.add(openButton)
         panel.add(stressTestButton)
+        panel.add(aggressiveTestButton)
 
         contentPanel.add(panel, BorderLayout.NORTH)
     }
